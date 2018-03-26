@@ -22,8 +22,8 @@ public class interfaz extends javax.swing.JFrame {
      */
     public interfaz() {
         bbdd = new BBDD();
-        vPizzas2 = new ArrayList<>();
-        vIngretientes = new ArrayList<>();
+        vPedido = new ArrayList<>();
+        //vIngretientes = new ArrayList<>();
         modeloIngredientes = new DefaultListModel();
         modelopizas = new DefaultListModel();
 
@@ -31,14 +31,12 @@ public class interfaz extends javax.swing.JFrame {
         //ingredientes[0] = new Ingredientes("Tomate");
         //ingredientes[1] = new Ingredientes("Queso");
         //ingredientes[2] = new Ingredientes("Jamon");
-        vIngretientes.add(new Ingredientes("Tomate"));
-        vIngretientes.add(new Ingredientes("Queso"));
-        vIngretientes.add(new Ingredientes("Jamón"));
-      
+        //vIngretientes.add(new Ingredientes("Tomate"));
+        //vIngretientes.add(new Ingredientes("Queso"));
+        // vIngretientes.add(new Ingredientes("Jamón"));
         initComponents();
-    
-        vClientes = new ArrayList<>();
 
+        //vClientes = new ArrayList<>();
         configuracion();
     }
 
@@ -54,26 +52,26 @@ public class interfaz extends javax.swing.JFrame {
 
     public void configuracion() {
         jComboBoxnombre.addItem("Nombre Pizza");
-        ArrayList<String> nombresPizzas = bbdd.verColumnaTabla("Nombre", "pizza");  
+        ArrayList<String> nombresPizzas = bbdd.verColumnaTabla("Nombre", "pizza");
         for (int i = 0; i < nombresPizzas.size(); i++) {
             jComboBoxnombre.addItem(nombresPizzas.get(i));
         }
         jComboBoxtamaño.addItem("Tamaño");
         ArrayList<String> tamañoPizzas = bbdd.verColumnaTabla("Tamanio", "pizza");
         for (int i = 0; i < tamañoPizzas.size(); i++) {
-            if(tamañoPizzas.get(i).equalsIgnoreCase("1")){
+            if (tamañoPizzas.get(i).equalsIgnoreCase("1")) {
                 jComboBoxtamaño.addItem("Pequeña");
             }
-            if(tamañoPizzas.get(i).equalsIgnoreCase("2")){
+            if (tamañoPizzas.get(i).equalsIgnoreCase("2")) {
                 jComboBoxtamaño.addItem("Mediana");
             }
-            if(tamañoPizzas.get(i).equalsIgnoreCase("3")){
+            if (tamañoPizzas.get(i).equalsIgnoreCase("3")) {
                 jComboBoxtamaño.addItem("Grande");
             }
-            
+
         }
         ArrayList<String> ingredientesP = bbdd.verColumnaTabla("Nombre", "ingredientes");
-       for (int i = 0; i < ingredientesP.size(); i++) {
+        for (int i = 0; i < ingredientesP.size(); i++) {
             modeloIngredientes.addElement(ingredientesP.get(i));
         }
         jListingredientes.setModel(modeloIngredientes);
@@ -296,63 +294,66 @@ public class interfaz extends javax.swing.JFrame {
 
     private void jButtonFacturaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonFacturaActionPerformed
         double factura = 0.0;
-        for (int i = 0; i < vPizzas2.size(); i++) {
-            factura += vPizzas2.get(i).calcularPrecio();
+        for (int i = 0; i < vPedido.size(); i++) {
+            factura+=vPedido.get(i).getPrecio();
         }
-        JOptionPane.showMessageDialog(this, vPizzas2.toString() +"\n"+"Factura: "+ factura);
-        Cliente nuevoCli = new Cliente(jTextFieldnoombre.getText(),jTextFieldTelefono.getText() , jTextFieldDireccion.getText());
-                bbdd.insertarClienteTelefono(nuevoCli);
+        JOptionPane.showMessageDialog(this, vPedido.toString() + "\n" + "Factura: " + factura);
+        
+        Cliente nuevoCli = new Cliente(jTextFieldnoombre.getText(), jTextFieldTelefono.getText(), jTextFieldDireccion.getText());
+        bbdd.insertarClienteTelefono(nuevoCli);
+        
+        
+        bbdd.insertarPedido(nuevoCli.getTelefono(),vPedido.toString(),factura);
     }//GEN-LAST:event_jButtonFacturaActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // vPizzas2.clear();
+        // vPedido.clear();
         modelopizas.clear();
         String nombrePizzas = (String) jComboBoxnombre.getSelectedItem();
+        ArrayList<Ingredientes> vIngredientes = new ArrayList<>();
+
         Pizzas nuevaP = bbdd.buscarPizza(nombrePizzas);
-        
-        ArrayList<Ingredientes> vIngredientesNuevaP = new ArrayList<>();
-        if (!jListingredientes.isSelectionEmpty()) {
-            int[] seleccionados = jListingredientes.getSelectedIndices();
-            for (int i = 0; i < seleccionados.length; i++) {
-                String ingrediente = (String) modeloIngredientes.get(seleccionados[i]);
-                for (int j = 0; j < vIngretientes.size(); j++) {
-                    if (vIngretientes.get(j).getNombre().equalsIgnoreCase(ingrediente)) {
-                        vIngredientesNuevaP.add(vIngretientes.get(j));
-                        nuevaP.setvIngredientes(vIngredientesNuevaP);
-                    }
-                }
+        if (nuevaP != null) {
+            int[] ingredientes = jListingredientes.getSelectedIndices();
+
+            for (int i = 0; i < ingredientes.length; i++) {
+                String nombre=(String)modeloIngredientes.getElementAt(i);
+                Ingredientes ing = bbdd.buscarIngrediente(nombre);
+                vIngredientes.add(ing);
             }
 
+            nuevaP.setvIngredientes(vIngredientes);
+            vPedido.add(nuevaP);
+            for (Pizzas p : vPedido) {
+                modelopizas.addElement(p.imprimirpizzas() +" Ingredientes Extra: " + p.mostrarIngredientes());
+            }
         }
-        nuevaP.setTamaño(jComboBoxtamaño.getSelectedIndex());
-        vPizzas2.add(nuevaP);
-        for (Pizzas p : vPizzas2) {
-            modelopizas.addElement(p.imprimirpizzas() + " Ingredientes Extra: " + p.mostrarIngredientes());
-        }
+
+        
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButtonEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEliminarActionPerformed
         int i = jListpedidosCilentes.getSelectedIndex();
-        if (i>-1) {
+        if (i > -1) {
             modelopizas.clear();
-            vPizzas2.remove(i);
-            for (Pizzas p : vPizzas2) {
+            vPedido.remove(i);
+            for (Pizzas p : vPedido) {
                 modelopizas.addElement(p.imprimirpizzas() + " Ingredientes Extra: " + p.mostrarIngredientes());
             }
-        }else
-            JOptionPane.showMessageDialog(this,"Seleccione una Pizza");
+        } else {
+            JOptionPane.showMessageDialog(this, "Seleccione una Pizza");
+        }
 
     }//GEN-LAST:event_jButtonEliminarActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-       Cliente busquedaC = bbdd.buscarClienteTelefono(jTextFieldTelefono.getText());
-            if (busquedaC!=null){
-                jTextFieldDireccion.setText(busquedaC.getDireccion());
-                jTextFieldnoombre.setText(busquedaC.getNombre());
-            }
-                
-            
-        
+        Cliente busquedaC = bbdd.buscarClienteTelefono(jTextFieldTelefono.getText());
+        if (busquedaC != null) {
+            jTextFieldDireccion.setText(busquedaC.getDireccion());
+            jTextFieldnoombre.setText(busquedaC.getNombre());
+        }
+
+
     }//GEN-LAST:event_jButton2ActionPerformed
 
     /**
@@ -392,10 +393,10 @@ public class interfaz extends javax.swing.JFrame {
     private BBDD bbdd;
     private DefaultListModel modelopizas;
     private DefaultListModel modeloIngredientes;
-    private ArrayList<Pizzas> vPizzas2;
-    private ArrayList<Pizzas> vPizzas;
-    private ArrayList<Cliente> vClientes;
-    private ArrayList<Ingredientes> vIngretientes;
+    private ArrayList<Pizzas> vPedido;
+    //private ArrayList<Pizzas> vPizzas;
+    //private ArrayList<Cliente> vClientes;
+    //private ArrayList<Ingredientes> vIngretientes;
     private Pedido pedido;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroupPedido;

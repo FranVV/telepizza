@@ -10,12 +10,12 @@ package telepizza;
  * @author alumno
  */
 public class Telepizza {
+    private String nombre;
+    private String direccion;
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        // TODO code application logic here
+    public Telepizza(String nombre, String direccion) {
+        this.nombre = nombre;
+        this.direccion = direccion;
     }
     
 }
